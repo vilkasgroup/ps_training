@@ -1,0 +1,11 @@
+services:
+  training.module:
+    class: 'training'
+    factory: ['Module', 'getInstanceByName']
+    arguments:
+      - 'training'
+
+  training.get_price:
+    class: Invertus\Training\Price\GetProductPrice
+    arguments:
+      - '@training.module'
