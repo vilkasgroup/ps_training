@@ -1,0 +1,15 @@
+{
+  "name": "training",
+  "description": "This is training module",
+  "authors": [
+    {
+      "name": "Invertus",
+      "email": "developers@invertus.eu"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Invertus\\Training\\": "src/"
+    }
+  }
+}
