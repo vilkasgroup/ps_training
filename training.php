@@ -1,5 +1,7 @@
 <?php
 
+use Invertus\Training\TrainingProductSearchProvider;
+
 class training extends Module
 {
     public function __construct()
@@ -11,7 +13,7 @@ class training extends Module
 
         parent::__construct();
 
-        $this->displayName = $this->l('Traininhg');
+        $this->displayName = $this->l('Training');
         $this->description = $this->l('Training module');
         $this->ps_versions_compliancy = array('min' => '1.7.2.0', 'max' => _PS_VERSION_);
     }
@@ -25,14 +27,29 @@ class training extends Module
         if (!$this->registerHook('displayProductAdditionalInfo')) {
             return false;
         }
+        if (!$this->registerHook('productSearchProvider')) {
+            return false;
+        }
 
         return true;
     }
 
-    public function hookDisplayProductAdditionalInfo($params)
+    public function hookProductSearchProvider($params)
     {
-        $repository = new \Invertus\Training\Repository\CurrencyExchangeRepository();
-        $changer = new \Invertus\Training\Currency\CurrencyExchangeChanger($repository);
+        /** @var \PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery $query */
+        $query = $params['query'];
+
+        if ($query->getIdCategory()) {
+            $searchProvider = $this->context->controller->getContainer()->get('invertus.training.product.search_provider');
+
+            return $searchProvider;
+        } else {
+            return null;
+        }
+    }
+
+    public function hookDisplayProductAdditionalInfo($params): void
+    {
         $getProductPrice = $this->context->controller->getContainer()->get('training.get_price');
         echo $getProductPrice->getPrice($params['product']->getId());
     }
