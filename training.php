@@ -1,6 +1,14 @@
 <?php
 
 use Invertus\Training\TrainingProductSearchProvider;
+use PrestaShop\PrestaShop\Adapter\Category\CategoryProductSearchProvider;
+use PrestaShop\PrestaShop\Adapter\Image\ImageRetriever;
+use PrestaShop\PrestaShop\Adapter\Product\PriceFormatter;
+use PrestaShop\PrestaShop\Adapter\Product\ProductColorsRetriever;
+use PrestaShop\PrestaShop\Core\Product\ProductListingPresenter;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchContext;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
+use PrestaShop\PrestaShop\Core\Product\Search\SortOrder;
 
 class training extends Module
 {
@@ -30,6 +38,9 @@ class training extends Module
         if (!$this->registerHook('productSearchProvider')) {
             return false;
         }
+        if (!$this->registerHook('actionFrontControllerSetMedia')) {
+            return false;
+        }
 
         return true;
     }
@@ -48,9 +59,20 @@ class training extends Module
         }
     }
 
-    public function hookDisplayProductAdditionalInfo($params): void
+    public function hookActionFrontControllerSetMedia()
     {
-        $getProductPrice = $this->context->controller->getContainer()->get('training.get_price');
-        echo $getProductPrice->getPrice($params['product']->getId());
+        $this->context->controller->registerJavascript('training-custom-event-catcher', 'modules/training/views/js/eventCatcher.js');
+    }
+
+
+    public function hookDisplayProductAdditionalInfo($params)
+    {
+        $this->context->smarty->assign(
+            [
+                'id_product' => $params['product']->getId(),
+                'link_to_front_controller' => $this->context->link->getModuleLink($this->name, 'customPage')
+            ]
+        );
+        return $this->fetch($this->getTemplatePath('productAdditionalInfoHook.tpl'));
     }
 }
