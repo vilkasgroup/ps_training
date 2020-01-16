@@ -16,6 +16,7 @@ class SearchProvider implements ProductSearchProviderInterface
 {
 
     private $module;
+    private $productsPerPage = 0;
 
     public function __construct($module)
     {
@@ -39,7 +40,7 @@ class SearchProvider implements ProductSearchProviderInterface
         $products = Product::getProducts(
             $context->getIdLang(),
             0,
-            0,
+            $this->productsPerPage,
             $orderByLegacy,
             $sortOrder->toLegacyOrderWay()
         );
@@ -77,6 +78,10 @@ class SearchProvider implements ProductSearchProviderInterface
         $result->setFacetCollection($facets);
 
         return $result;
+    }
+
+    public function setProductsPerPage($productsPerPage) {
+        $this->productsPerPage = $productsPerPage;
     }
 
     private function getAvailableSortOrders()
