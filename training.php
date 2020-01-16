@@ -12,6 +12,11 @@ use PrestaShop\PrestaShop\Core\Product\Search\SortOrder;
 
 class training extends Module
 {
+    const CONTROLLER_CONFIG = 'AdminTrainingConfiguration';
+
+    const CONTROLLER_PARENT = 'AdminTrainingParent';
+
+
     public function __construct()
     {
         $this->name = 'training';
@@ -42,7 +47,36 @@ class training extends Module
             return false;
         }
 
+        if (!$this->createTables()) {
+            return false;
+        }
+
         return true;
+    }
+//
+//    public function uninstall()
+//    {
+//        $sql = DB::getInstance()->execute('DROP TABLE '._DB_PREFIX_. 'training_article');
+//        parent::uninstall();
+//    }
+
+
+    public function createTables()
+    {
+        $return =  Db::getInstance()->execute('CREATE TABLE IF NOT EXISTS '._DB_PREFIX_. 'training_article' . '(
+            `id_training_article` INTEGER(10) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            `type` varchar(100) DEFAULT NULL
+                ) ENGINE='. _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8');
+
+        $return &= Db::getInstance()->execute('CREATE TABLE IF NOT EXISTS '._DB_PREFIX_. 'training_article_lang' . '(
+            `id_training_article` INTEGER(10) UNSIGNED,
+            `id_lang` INTEGER(10) UNSIGNED ,
+            `name` varchar(128),
+            `description` varchar(128),
+            PRIMARY KEY (id_training_article, id_lang)
+                ) ENGINE='. _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8');
+
+        return $return;
     }
 
     public function hookProductSearchProvider($params)
@@ -67,6 +101,28 @@ class training extends Module
 
     public function hookDisplayProductAdditionalInfo($params)
     {
+
+      //  Configuration::updateValue('TRAINING_ARTICLES_PER_PAGE', 5);
+//        $query = new DbQuery();
+//        $db = Db::getInstance();
+//        $query->select('type');
+//        $query->from('training_article');
+//        $query->where('id_training_article = 2');
+//        dump($db->getValue($query));
+//        $db->delete('training_article', 'id_training_article = 2 ');
+//        $db->update('training_article', [
+//            'type' => 'super_type'
+//        ], 'id_training_article = 2 ');
+
+
+//        $article = new TrainingArticle(2);
+//
+//        $article->delete();
+//
+//        $article->name[Language::getIdByIso('FI')] = 'Name in finish';
+//
+//        $article->description[Language::getIdByIso('FI')] = 'Description in finish';
+//        $article->save();
         $this->context->smarty->assign(
             [
                 'id_product' => $params['product']->getId(),
@@ -74,5 +130,27 @@ class training extends Module
             ]
         );
         return $this->fetch($this->getTemplatePath('productAdditionalInfoHook.tpl'));
+    }
+
+    public function getContent()
+    {
+        Tools::redirectAdmin($this->context->link->getAdminLink(self::CONTROLLER_CONFIG));
+    }
+
+    public function getTabs()
+    {
+        return [
+            [
+                'name' => 'Training',
+                'ParentClassName' => 'AdminParentModulesSf',
+                'class_name' => self::CONTROLLER_PARENT,
+                'visible' => false,
+            ],
+            [
+                'name' => 'Configuration',
+                'ParentClassName' => self::CONTROLLER_PARENT,
+                'class_name' => self::CONTROLLER_CONFIG,
+            ]
+        ];
     }
 }
