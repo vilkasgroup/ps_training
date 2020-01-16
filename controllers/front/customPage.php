@@ -7,7 +7,6 @@ use PrestaShop\PrestaShop\Adapter\Product\ProductColorsRetriever;
 use \PrestaShop\PrestaShop\Adapter\Presenter\Product\ProductListingPresenter;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchContext;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
-use PrestaShop\PrestaShop\Core\Product\Search\SortOrder;
 
 class TrainingCustomPageModuleFrontController extends ModuleFrontController
 {
@@ -19,6 +18,10 @@ class TrainingCustomPageModuleFrontController extends ModuleFrontController
             'products' => $this->getProducts()
         ]);
 
+        /**
+         * You need setTemplate for front controller to not crash
+         * Unless controller is never meant to be opened directly(For example used for ajax only)
+         */
         $this->setTemplate('module:' . $this->module->name . '/views/templates/front/customPage.tpl');
     }
 
@@ -26,6 +29,9 @@ class TrainingCustomPageModuleFrontController extends ModuleFrontController
     {
         parent::setMedia();
 
+        /**
+         * Adding variable to javascript
+         */
         Media::addJsDef([
             'trainingCustomPageUrl' => $this->context->link->getModuleLink($this->module->name, 'customPage')
         ]);
@@ -36,14 +42,28 @@ class TrainingCustomPageModuleFrontController extends ModuleFrontController
 
     public function postProcess()
     {
+        /**
+         * $this->ajax makes sure its ajax
+         * isTokenValid checks for tokeen
+         */
         if ($this->isTokenValid() && $this->ajax && Tools::getValue('action') === 'getCurrentDay') {
             $this->ajaxRender('I dont know either');
         }
         parent::postProcess();
     }
 
+
+    /**
+     * Used to get Products using the ProductSearchProvider
+     * This list is required to properly display product miniatures of prestashop which require a lot of stuff like
+     * images, links, colors etc.
+     * So this function usees productSearchProvided to get product list and then add all required info to that lsit
+     */
     protected function getProducts()
     {
+        /**
+         * Search provider being taken trough container. This is src/Product/SearchProvider class
+         */
         $searchProvider = $this->getContainer()->get('invertus.training.product.search_provider');
 
         $context = new ProductSearchContext($this->context);
@@ -55,16 +75,32 @@ class TrainingCustomPageModuleFrontController extends ModuleFrontController
             ->setPage(1)
         ;
 
+        /**
+         * We get product list using context and query
+         * Context is simply required for context of page like language
+         * Query tells what sort of list we went to provider. Query might contain idCategory,
+         * idManufacturer and so but it only matters if searchProvider takes them into account
+         */
         $result = $searchProvider->runQuery(
             $context,
             $query
         );
 
+        /**
+         * Assemble is required to assemble product data and add missing properties
+         */
         $assembler = new ProductAssembler($this->context);
 
+        /**
+         * Presentation settings hold settings that might affect how to dispaly products
+         * Example: if Catalog mode is on you shouldn't display add to cart.
+         */
         $presenterFactory = new ProductPresenterFactory($this->context);
         $presentationSettings = $presenterFactory->getPresentationSettings();
 
+        /**
+         * Present is responsible for presenting additional data like images links etc,
+         */
         $presenter = new ProductListingPresenter(
             new ImageRetriever(
                 $this->context->link

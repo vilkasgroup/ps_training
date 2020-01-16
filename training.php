@@ -1,15 +1,6 @@
 <?php
 
-use Invertus\Training\TrainingProductSearchProvider;
-use PrestaShop\PrestaShop\Adapter\Category\CategoryProductSearchProvider;
-use PrestaShop\PrestaShop\Adapter\Image\ImageRetriever;
-use PrestaShop\PrestaShop\Adapter\Product\PriceFormatter;
-use PrestaShop\PrestaShop\Adapter\Product\ProductColorsRetriever;
 use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
-use PrestaShop\PrestaShop\Core\Product\ProductListingPresenter;
-use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchContext;
-use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
-use PrestaShop\PrestaShop\Core\Product\Search\SortOrder;
 
 class training extends Module
 {
@@ -34,11 +25,11 @@ class training extends Module
         $this->ps_versions_compliancy = array('min' => '1.7.2.0', 'max' => _PS_VERSION_);
     }
 
-    public function hookDisplayProductExtraContent()
-    {
-        return 'hello world';
-    }
-
+    /**
+     * Should always return true or false
+     * Should probably move to another service for cleanness
+     * You can't services from your services.yml here because module is not installed yet.
+     */
     public function install()
     {
         if (!parent::install()) {
@@ -65,12 +56,20 @@ class training extends Module
         return true;
     }
 
+    /**
+     * Symfony container used in new functions in PrestaShop
+     * Works only in backoffice
+     * Can be used to retrieve new PrestaShop services.
+     */
     public function getContainer()
     {
         return SymfonyContainer::getInstance();
     }
     public function hookDisplayAdminOrder($params)
     {
+        /**
+         * Using twig service to display twig template
+         */
         $twig = $this->getContainer()->get('twig');
         return $twig->render(
             '@Modules/training/views/templates/admin/adminOrder.html.twig',
@@ -89,6 +88,11 @@ class training extends Module
 //    }
 
 
+    /**
+     * Function to create tables using Db::getInstance()->execute which executes any sql code.
+     * Make sure to delete table on uninstall when you create them
+     * @return bool
+     */
     public function createTables()
     {
         $return =  Db::getInstance()->execute('CREATE TABLE IF NOT EXISTS '._DB_PREFIX_. 'training_article' . '(
@@ -107,6 +111,10 @@ class training extends Module
         return $return;
     }
 
+    /**
+     * Hook is required to tell prestashop that it should use diffrent search  provided then the default
+     * If you don't want to replace search provider from prestashop return false
+     */
     public function hookProductSearchProvider($params)
     {
         /** @var \PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery $query */
@@ -121,6 +129,14 @@ class training extends Module
         }
     }
 
+    /**
+     * Hook is required for setting of javascript or css in prestashop
+     * Use hookActionAdminControllerSetMedia for admin
+     * For admin it would be $this->context->controller->addJS() instead.
+     * If you want to only have js/css in specific controller you can always do something like this
+     * if ($this->context->controller instanceof AdminOrderController) {
+     * and then set js/css
+     */
     public function hookActionFrontControllerSetMedia()
     {
         $this->context->controller->registerJavascript('training-custom-event-catcher', 'modules/training/views/js/eventCatcher.js');
@@ -130,6 +146,9 @@ class training extends Module
     public function hookDisplayProductAdditionalInfo($params)
     {
 
+        /**
+         * some examples of what can be done with Db::getInstance or DbQuery
+         */
       //  Configuration::updateValue('TRAINING_ARTICLES_PER_PAGE', 5);
 //        $query = new DbQuery();
 //        $db = Db::getInstance();
@@ -143,6 +162,9 @@ class training extends Module
 //        ], 'id_training_article = 2 ');
 
 
+        /**
+         * Examples how object model can be used
+         */
 //        $article = new TrainingArticle(2);
 //
 //        $article->delete();
@@ -151,26 +173,48 @@ class training extends Module
 //
 //        $article->description[Language::getIdByIso('FI')] = 'Description in finish';
 //        $article->save();
+
+        /**
+         * Assiging variables to smarty so they can be used in template
+         */
         $this->context->smarty->assign(
             [
                 'id_product' => $params['product']->getId(),
                 'link_to_front_controller' => $this->context->link->getModuleLink($this->name, 'customPage')
             ]
         );
-        $this->context->controller->errors[] = 'Some error';
-        $this->context->controller->success[] = 'Some error';
-        $this->context->controller->warnings[] = 'Some error';
 
+        /**
+         * you can set errors to your controlelr and they will be displayed automatically, if you want to see them in next page
+         * you can use function redirectWithNotifications to that page
+         */
+//        $this->context->controller->errors[] = 'Some error';
+//        $this->context->controller->success[] = 'Some error';
+//        $this->context->controller->warnings[] = 'Some error';
+//
+//
+//        $this->context->controller->redirectWithNotifications($this->context->link->getModuleLink('training', 'customPage'));
 
-        $this->context->controller->redirectWithNotifications($this->context->link->getModuleLink('training', 'customPage'));
+        /**
+         * how to get template.
+         * $this->getTemplatePath will only work if template is in views/templates/hook
+         */
         return $this->fetch($this->getTemplatePath('productAdditionalInfoHook.tpl'));
     }
 
+    /**
+     * getContent returns content which displayed once you click configure on module
+     * Configure module won't be visible if you don't have this function
+     * Can return HTML (or template) here or you can redirect somewhere else
+     */
     public function getContent()
     {
         Tools::redirectAdmin($this->context->link->getAdminLink(self::CONTROLLER_CONFIG));
     }
 
+    /**
+     * Function used to register tabs in prestashop. ParentClassName is the parent tab. Could be any Prestashop or your own tab
+     */
     public function getTabs()
     {
         return [

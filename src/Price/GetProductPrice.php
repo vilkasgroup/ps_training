@@ -16,6 +16,9 @@ class GetProductPrice
         $this->module = $module;
     }
 
+    /*
+     * This is a nonsensical class used to demonstrate how services.yml works.
+     */
     public function getPrice($id)
     {
         if ($id === 2) {

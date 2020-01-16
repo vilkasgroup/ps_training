@@ -1,14 +1,27 @@
 <?php
 
+/**
+ * In order for controlelr to work tab must be registered
+ * Also Naming Should be Admin{ControllerName}Controller
+ * It must extend ModuleAdminController
+ * Class AdminTrainingArticleController
+ */
 class AdminTrainingArticleController extends ModuleAdminController
 {
     public function __construct()
     {
         $this->bootstrap = true;
+        /**
+         * Connecting Controller with object and database
+         */
         $this->table = 'training_article';
         $this->className = 'TrainingArticle';
         $this->lang = true;
 
+        /**
+         * Adding row actions without which we cant edit or delete
+         * Custom row actions can be added
+         */
         $this->addRowAction('edit');
         $this->addRowAction('delete');
 
@@ -23,8 +36,14 @@ class AdminTrainingArticleController extends ModuleAdminController
         $this->initForm();
     }
 
+    /*
+     * More information how form is being displayed can be found in PS/admin/themes/default/template/helpers/list/list-content.tpl
+     */
     private function initList()
     {
+        /**
+         * Those are needed if you want to add more data to select then table of object of this controller
+         */
         $this->_select = ' pl.`name` as product_name, pl.`name` as product_button_name';
         $this->_join = 'LEFT JOIN `'._DB_PREFIX_.'product_lang` `pl` ON pl.`id_product` = a.`id_training_article` AND pl.`id_lang` = ' . (int)$this->context->language->id;
         $this->fields_list =  array(
@@ -61,13 +80,8 @@ class AdminTrainingArticleController extends ModuleAdminController
     }
 
     /**
-     * Column callback for print PDF incon.
-     *
-     * @param $productName
-     * @param $tr array Row data
-     *
-     * @return string HTML content
-     * @throws SmartyException
+     * Callback function which can return whatever you want instead to list.
+     * Useful to adding custom things to list
      */
     public function getProductName($productName, $tr)
     {
@@ -78,8 +92,14 @@ class AdminTrainingArticleController extends ModuleAdminController
         return $this->context->smarty->fetch('module:training/views/templates/admin/productName.tpl');
     }
 
+    /**
+     * More information how form is being displayed can be found in PS/admin/themes/default/template/helpers/form/form.tpl
+     */
     private function initForm()
     {
+        /**
+         * this way you can show certain values to customers as selected
+         */
         $this->fields_value['type_1'] = true;
         $this->fields_value['type_3'] = true;
 
@@ -126,6 +146,10 @@ class AdminTrainingArticleController extends ModuleAdminController
         );
     }
 //
+    /**
+     * In processSave you can execute your own saving operations. You could use other functions
+     * like postProcess but processSave is great because that's when PrestaShop does the saving
+     */
 //    public function processSave()
 //    {
 //       // Db::getInstance()->delete('article_group', 'id_article = ' . (int)$this->id_object);

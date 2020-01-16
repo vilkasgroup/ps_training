@@ -32,10 +32,22 @@ class SearchProvider implements ProductSearchProviderInterface
     {
         $result = new ProductSearchResult();
         $sortOrder = $query->getSortOrder();
+
+        /**
+         * need to transform order by in order for it to be usable in Product::getProducts()
+         */
         $orderByLegacy = $sortOrder->toLegacyOrderBy();
+
+        /**
+         * default orderBy is position which Product table does not have so there will sql be an error if we keep order by as position
+         */
         if ($orderByLegacy === 'position') {
             $orderByLegacy = 'id_product';
         }
+
+        /**
+         * Getting base list of products, those can be gained using any other way.
+         */
         $products = Product::getProducts(
             $context->getIdLang(),
             0,
@@ -46,6 +58,10 @@ class SearchProvider implements ProductSearchProviderInterface
 
         $encodedFilters = $query->getEncodedFacets();
 
+
+        /**|
+         * Where encoded facets are being used to affect your product list.
+         */
         foreach ($products as $key => $product) {
             $productPrice = $product['price'] + ($product['price'] / 100 * $product['rate']);
 
@@ -72,6 +88,8 @@ class SearchProvider implements ProductSearchProviderInterface
         $result->setTotalProductsCount(count($products));
         $result->setAvailableSortOrders($this->getAvailableSortOrders());
         $result->setProducts($products);
+
+
         $facets = new FacetCollection();
         $facets->addFacet($this->getFacet($query->getEncodedFacets()));
         $result->setFacetCollection($facets);
@@ -79,6 +97,10 @@ class SearchProvider implements ProductSearchProviderInterface
         return $result;
     }
 
+
+    /**
+     * Definition of sort orders
+     */
     private function getAvailableSortOrders()
     {
         return [
@@ -100,6 +122,13 @@ class SearchProvider implements ProductSearchProviderInterface
         ];
     }
 
+
+    /**
+     * Facets are used to filter trough products.
+     * Each facet has filters
+     * Example of facet: Color
+     * Example of filter: Red
+     */
     private function getFacet($encodedFilters)
     {
         $facet = new Facet();
@@ -117,9 +146,16 @@ class SearchProvider implements ProductSearchProviderInterface
         $filter->setValue(['from' => '14', 'to' => '18']);
         $filter->setNextEncodedFacets('price-$-10-18');
 
+        /**
+         * We need to check that filter is active so that it's visible to user.
+         */
         if ($encodedFilters == 'price-$-10-18' || $encodedFilters == 'price-$-10-18/price-$-18-23') {
             $filter->setActive(true);
         }
+
+        /**
+         * we need to check nextEncodedFacets so later PrestaShop knows both filters were selected
+         */
         if ($encodedFilters == 'price-$-18-23') {
             $filter->setNextEncodedFacets('price-$-10-18/price-$-18-23');
         }

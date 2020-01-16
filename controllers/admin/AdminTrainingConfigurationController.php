@@ -7,6 +7,9 @@ class AdminTrainingConfigurationController extends ModuleAdminController
         $this->bootstrap = true;
 
         parent::__construct();
+        /**
+         * Needed if you want to add your own custom fields to form
+         */
         $this->override_folder = 'template_overrides/';
         $this->tpl_folder = 'template_overrides/';
 
@@ -25,6 +28,10 @@ class AdminTrainingConfigurationController extends ModuleAdminController
         $this->context->smarty->assign('select_fields_values',
             $groups
         );
+
+        /**
+         * Custom select is custom form which has been defined in Modules/training/views/tempaltes/admin/tempalte_overrides/helpers/options/options.tpl
+         */
         $this->fields_options = array(
             'training' => array(
                 'title' => $this->module->l('Configuration'),

@@ -9,6 +9,9 @@ class TrainingArticle extends ObjectModel
     public $type;
 
     /**
+     * Definition needs to connect your object to database try to keep field definition close to database
+     *
+     * multilang=true is needed if you have translatable fields
      * @see ObjectModel::$definition
      */
     public static $definition = array(
