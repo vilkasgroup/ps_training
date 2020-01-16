@@ -60,6 +60,11 @@ class AdminTrainingConfigurationController extends ModuleAdminController
                         'cast' => 'intval',
                         'type' => 'bool',
                     ),
+                    'TRAINING_DISPLAY_RIGHT_COLUMN' => array(
+                        'title' => $this->module->l('Display right column'),
+                        'cast' => 'intval',
+                        'type' => 'bool',
+                    ),
                     'TRAINING_ARTICLES_GROUPS' => array(
                         'title' => $this->module->l('Display articles'),
                         'cast' => 'intval',

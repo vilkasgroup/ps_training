@@ -129,7 +129,11 @@ class training extends Module
                 'link_to_front_controller' => $this->context->link->getModuleLink($this->name, 'customPage')
             ]
         );
-        return $this->fetch($this->getTemplatePath('productAdditionalInfoHook.tpl'));
+        if(Configuration::get('TRAINING_DISPLAY_RIGHT_COLUMN')) {
+            return $this->fetch($this->getTemplatePath('productAdditionalInfoHook.tpl'));
+        }
+
+        return "";
     }
 
     public function getContent()
