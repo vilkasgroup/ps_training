@@ -5,6 +5,7 @@ use PrestaShop\PrestaShop\Adapter\Category\CategoryProductSearchProvider;
 use PrestaShop\PrestaShop\Adapter\Image\ImageRetriever;
 use PrestaShop\PrestaShop\Adapter\Product\PriceFormatter;
 use PrestaShop\PrestaShop\Adapter\Product\ProductColorsRetriever;
+use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
 use PrestaShop\PrestaShop\Core\Product\ProductListingPresenter;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchContext;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
@@ -13,6 +14,8 @@ use PrestaShop\PrestaShop\Core\Product\Search\SortOrder;
 class training extends Module
 {
     const CONTROLLER_CONFIG = 'AdminTrainingConfiguration';
+    const CONTROLLER_ARTICLE = 'AdminTrainingArticle';
+
 
     const CONTROLLER_PARENT = 'AdminTrainingParent';
 
@@ -21,7 +24,7 @@ class training extends Module
     {
         $this->name = 'training';
         $this->tab = 'analytics_stats';
-        $this->version = '1.0.0';
+        $this->version = '1.0.1';
         $this->author = 'Invertus';
 
         parent::__construct();
@@ -29,6 +32,11 @@ class training extends Module
         $this->displayName = $this->l('Training');
         $this->description = $this->l('Training module');
         $this->ps_versions_compliancy = array('min' => '1.7.2.0', 'max' => _PS_VERSION_);
+    }
+
+    public function hookDisplayProductExtraContent()
+    {
+        return 'hello world';
     }
 
     public function install()
@@ -46,12 +54,32 @@ class training extends Module
         if (!$this->registerHook('actionFrontControllerSetMedia')) {
             return false;
         }
+        if (!$this->registerHook('displayAdminOrder')) {
+            return false;
+        }
 
         if (!$this->createTables()) {
             return false;
         }
 
         return true;
+    }
+
+    public function getContainer()
+    {
+        return SymfonyContainer::getInstance();
+    }
+    public function hookDisplayAdminOrder($params)
+    {
+        $twig = $this->getContainer()->get('twig');
+        return $twig->render(
+            '@Modules/training/views/templates/admin/adminOrder.html.twig',
+            [
+                'id_order' => (string) $params['id_order']
+            ]
+        );
+//        $twig = $this->context->controller->get('twig');
+//        dump($twig);
     }
 //
 //    public function uninstall()
@@ -129,6 +157,12 @@ class training extends Module
                 'link_to_front_controller' => $this->context->link->getModuleLink($this->name, 'customPage')
             ]
         );
+        $this->context->controller->errors[] = 'Some error';
+        $this->context->controller->success[] = 'Some error';
+        $this->context->controller->warnings[] = 'Some error';
+
+
+        $this->context->controller->redirectWithNotifications($this->context->link->getModuleLink('training', 'customPage'));
         return $this->fetch($this->getTemplatePath('productAdditionalInfoHook.tpl'));
     }
 
@@ -150,6 +184,11 @@ class training extends Module
                 'name' => 'Configuration',
                 'ParentClassName' => self::CONTROLLER_PARENT,
                 'class_name' => self::CONTROLLER_CONFIG,
+            ],
+            [
+                'name' => 'Article',
+                'ParentClassName' => self::CONTROLLER_PARENT,
+                'class_name' => self::CONTROLLER_ARTICLE,
             ]
         ];
     }

@@ -47,13 +47,7 @@ class AdminTrainingConfigurationController extends ModuleAdminController
                         'desc' => $this->module->l('How many artilces per page'),
                         'hint' => $this->module->l('enter number'),
                         'cast' => 'intval',
-                        'type' => 'custom_select',
-                        'choices' => [
-                            '1' => 'One',
-                            '2' => 'Two',
-                            '5' => 'Five'
-
-                        ]
+                        'type' => 'text'
                     ),
                     'TRAINING_DISPLAY_ARTICLES' => array(
                         'title' => $this->module->l('Display articles'),

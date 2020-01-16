@@ -17,7 +17,7 @@ class TrainingArticle extends ObjectModel
         'multilang' => true,
         'fields' => array(
             'name' => array('type' => self::TYPE_STRING, 'lang' => true, 'validate' => 'isGenericName', 'required' => true, 'size' => 128),
-            'description' => array('type' => self::TYPE_STRING, 'lang' => true, 'validate' => 'isGenericName', 'size' => 255),
+            'description' => array('type' => self::TYPE_STRING, 'lang' => true, 'required' => true, 'validate' => 'isGenericName', 'size' => 255),
             'type' => array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'size' => 100),
         ),
     );
