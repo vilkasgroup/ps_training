@@ -209,6 +209,8 @@ class training extends Module
      */
     public function getContent()
     {
+        Tools::redirectAdmin($this->getContainer()->get('router')->generate('training_admin_article'));
+
         Tools::redirectAdmin($this->context->link->getAdminLink(self::CONTROLLER_CONFIG));
     }
 
@@ -235,5 +237,76 @@ class training extends Module
                 'class_name' => self::CONTROLLER_ARTICLE,
             ]
         ];
+    }
+
+
+    /**
+     * This is used by carrier modules in order to crete carriers that are tied to your module
+     * Module class needs to extend CarrierModule instead of Module
+     */
+
+    /** This is logic to create carriers in PrestasShop in way that they use this modules functions */
+    public function createCarriers()
+    {
+        $carrier = new Carrier();
+        $carrier->active = true;
+        $carrier->name = 'Training Carrier';
+        $delay = [];
+        foreach (Language::getLanguages() as $language) {
+            $delay[$language['id_lang']] = 'Translated name';
+        }
+        $carrier->delay = $delay;
+        $carrier->is_module = 1;
+        $carrier->need_range = 1;
+        $carrier->shipping_external = 1;
+        $carrier->external_module_name = $this->name;
+
+
+        $groupsForCarrier = [];
+        foreach (Group::getGroups($this->context->language->id) as $group) {
+            $groupsForCarrier[] = $group['id_group'];
+        }
+        $carrier->save();
+
+        /**
+         * Should be set after carrier is saved because this func tion required carrier id
+         * This sets groups for carrier so it can be viewed by all customer groups in PrestaShop adjust if nessecery
+         */
+        $carrier->setGroups($groupsForCarrier);
+
+        /**
+         * adds base range for carrier could be RangeWeight or RangePrice
+         * PrestaShop needs at least one range for carrier to work, more about ranges you can find out in carrier shipping locations and costs tab
+         */
+        $weightRange = new RangeWeight();
+        $weightRange->id_carrier = $carrier->id;
+        $weightRange->delimiter1 = 0;
+        $weightRange->delimiter2 = 999999999;
+        $weightRange->add();
+
+        /**
+         * adds carrier to all of the existing zones
+         */
+        foreach(Zone::getZones() as $zone) {
+            $carrier->addZone($zone['id_zone']);
+        }
+
+        return true;
+    }
+
+    /**
+     * returns shipping costs no matter what is defined in carrier settings, return false if you don't want customer to see carrier
+     * @param $params
+     * @param $shipping_cost
+     * @return int
+     */
+    public function getOrderShippingCost($params, $shipping_cost)
+    {
+        return 10;
+    }
+
+    public function getOrderShippingCostExternal($params)
+    {
+        return 10;
     }
 }

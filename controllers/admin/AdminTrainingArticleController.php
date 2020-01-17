@@ -83,7 +83,7 @@ class AdminTrainingArticleController extends ModuleAdminController
      * Callback function which can return whatever you want instead to list.
      * Useful to adding custom things to list
      */
-    public function getProductName($productName, $tr)
+    public function getProductName($productName)
     {
         $this->context->smarty->assign(array(
             'productName' => $productName,

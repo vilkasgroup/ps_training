@@ -1,0 +1,7 @@
+training_admin_article:
+  path: /
+  methods: [GET]
+  defaults:
+    _controller: 'Invertus\Training\Controller\Admin\TrainingArticleController::listingAction'
+    _legacy_controller: AdminTrainingArticle
+    _legacy_link: AdminTrainingArticle
