@@ -25,4 +25,14 @@ class TrainingArticle extends ObjectModel
         ),
     );
 
+    public function toArray()
+    {
+        return [
+            'type' => $this->type,
+            'name' => $this->name,
+            'description' => $this->description
+
+        ];
+    }
+
 }

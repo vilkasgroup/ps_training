@@ -1,0 +1,27 @@
+{#This overrides prestashop template. Here folders and path to this file are important
+ as Prestashop overrides it's templates based on that. You should extend original template here to
+ not lose any of it's functionality
+  #}
+{% extends 'PrestaShopBundle:Admin/Configure/ShopParameters:preferences.html.twig' %}
+
+{% block shop_preferences_form_rest %}
+  <div class="form-group row">
+    <label class="form-control-label">Shop motto</label>
+    <div class="col-sm">
+      {{ form_errors(form.shop_motto) }}
+      {{ form_widget(form.shop_motto) }}
+      <small class="form-text">Motto will be showed to your customers</small>
+    </div>
+  </div>
+  <div class="form-group row">
+    <label class="form-control-label">PRimary email shop</label>
+    <div class="col-sm">
+      {{ form_errors(form.primary_email) }}
+      {{ form_widget(form.primary_email) }}
+      <small class="form-text">Signal for shop</small>
+    </div>
+  </div>
+
+
+  {{ form_rest(form) }}
+{% endblock %}

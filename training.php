@@ -1,6 +1,16 @@
 <?php
 
+use Invertus\Training\Domain\Carrier\Query\GetOrdersQuery;
 use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
+use PrestaShop\PrestaShop\Core\ConstraintValidator\Constraints\TypedRegex;
+use PrestaShop\PrestaShop\Core\Grid\Column\Type\DataColumn;
+use PrestaShop\PrestaShop\Core\Grid\Definition\GridDefinitionInterface;
+use PrestaShop\PrestaShop\Core\Grid\Filter\Filter;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormBuilder;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use PrestaShop\PrestaShop\Core\Domain\Customer\Query\GetCustomerOrders;
 
 class training extends Module
 {
@@ -21,7 +31,7 @@ class training extends Module
         parent::__construct();
 
         $this->displayName = $this->l('Training');
-        $this->description = $this->l('Training module');
+        $this->description = $this->trans('Training Desc.', array(), 'Modules.Training.Admin');
         $this->ps_versions_compliancy = array('min' => '1.7.2.0', 'max' => _PS_VERSION_);
     }
 
@@ -48,13 +58,47 @@ class training extends Module
         if (!$this->registerHook('displayAdminOrder')) {
             return false;
         }
+        if (!$this->registerHook('actionDispatcherAfter')) {
+            return false;
+        }
+
 
         if (!$this->createTables()) {
             return false;
         }
 
-        return true;
+        $return = $this->registerHook('actionLanguageGridDefinitionModifier') &&
+        $this->registerHook('actionLanguageGridQueryBuilderModifier') &&
+        $this->registerHook('actionLanguageGridPresenterModifier') &&
+        $this->registerHook('actionLanguageGridFilterFormModifier') &&
+        $this->registerHook('actionGeneralPageForm') &&
+        $this->registerHook('actionGeneralPageSave') &&
+        $this->registerHook('actionLanguageFormBuilderModifier');
+
+        return $return;
     }
+
+
+    /**
+     * Example how you modify edit form in new controllers
+     * @param $params
+     */
+    public function hookActionLanguageFormBuilderModifier($params)
+    {
+        $par = $params;
+        $params['form_builder']->add('custom_code', TextType::class, [
+            'constraints' => [
+                new NotBlank([
+                    'message' => $this->trans('This field cannot be empty', [], 'Admin.Notifications.Error'),
+                ]),
+                new TypedRegex([
+                    'type' => 'language_iso_code',
+                ]),
+            ],
+        ]);
+
+    }
+
 
     /**
      * Symfony container used in new functions in PrestaShop
@@ -67,10 +111,14 @@ class training extends Module
     }
     public function hookDisplayAdminOrder($params)
     {
+
         /**
          * Using twig service to display twig template
          */
         $twig = $this->getContainer()->get('twig');
+        $queryBus = $this->getContainer()->get('prestashop.core.query_bus');
+        $query = new GetOrdersQuery(2);
+        dump($queryBus->handle($query));
         return $twig->render(
             '@Modules/training/views/templates/admin/adminOrder.html.twig',
             [
@@ -81,6 +129,9 @@ class training extends Module
 //        dump($twig);
     }
 //
+    /**
+     * You should always delete your tables upon uninstall
+     */
 //    public function uninstall()
 //    {
 //        $sql = DB::getInstance()->execute('DROP TABLE '._DB_PREFIX_. 'training_article');
@@ -213,6 +264,79 @@ class training extends Module
 
         Tools::redirectAdmin($this->context->link->getAdminLink(self::CONTROLLER_CONFIG));
     }
+
+    public function isUsingNewTranslationSystem()
+    {
+        return true;
+    }
+
+    /**
+     * Example how to edit configuration form
+     * @param array $params
+     */
+    public function hookActionGeneralPageForm(array $params)
+    {
+        /** @var FormBuilder $formBuilder */
+        $formBuilder = $params['form_builder'];
+
+        $formBuilder->add('shop_motto', TextType::class, [
+            'data' => $this->get('prestashop.adapter.legacy.configuration')->get('PS_TRAINING_SHOP_MOTTO'),
+        ]);
+
+        $formBuilder->add('primary_email', EmailType::class, [
+            'data' => $this->get('prestashop.adapter.legacy.configuration')->get('PS_TRAINING_PRIMARY_EMAIL'),
+        ]);
+    }
+
+    /**
+     * Example how to do something when from is being saved
+     * Usually you will need this because when using hook above you don't get anything saved, you
+     * just add to form, you still need to process it which can be done.
+     * @param array $params
+     */
+    public function hookActionGeneralPageSave(array $params)
+    {
+        $motto = $params['form_data']['shop_motto'];
+        $this->get('prestashop.adapter.legacy.configuration')->set('PS_TRAINING_SHOP_MOTTO', $motto);
+        $signal = $params['form_data']['primary_email'];
+
+        $this->get('prestashop.adapter.legacy.configuration')->set('PS_TRAINING_PRIMARY_EMAIL', $signal);
+    }
+
+    /**
+     * Example how to use hooks to edit list in new controllers.
+     * @param array $params
+     */
+    public function hookActionLanguageGridDefinitionModifier(array $params)
+    {
+        /** @var GridDefinitionInterface $definition */
+        $definition = $params['definition'];
+ //       $definition->getBulkActions()->add();
+        $definition->getColumns()
+            ->remove('id_lang')
+            ->addBefore(
+                'iso_code',
+                (new DataColumn('locale'))
+                    ->setName('LOCALE')
+                    ->setOptions([
+                        'field' => 'locale',
+                    ])
+            )
+        ;
+        $definition->getFilters()
+        ->remove('id_lang')
+        ->add((new Filter('locale', TextType::class))
+            ->setAssociatedColumn('locale')
+            ->setTypeOptions([
+                'attr' => [
+                    'placeholder' => 'SEARCH ISO CODE',
+                ],
+            ])
+        )
+    ;
+    }
+
+
 
     /**
      * Function used to register tabs in prestashop. ParentClassName is the parent tab. Could be any Prestashop or your own tab
