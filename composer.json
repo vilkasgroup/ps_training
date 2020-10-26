@@ -8,7 +8,6 @@
     }
   ],
   "autoload": {
-    "classmap":  ["src/Entity"],
     "psr-4": {
       "Invertus\\Training\\": "src/"
     }

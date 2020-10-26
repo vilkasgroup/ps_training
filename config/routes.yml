@@ -1,6 +1,0 @@
-#included routes
-#Articles
-_article:
-  resource: "routes/article.yml"
-  prefix: /training/article
-
