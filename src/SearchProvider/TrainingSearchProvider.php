@@ -22,7 +22,6 @@ class TrainingSearchProvider implements ProductSearchProviderInterface
     private const FACET_25_75 = 'price-$-25-75';
     private const FACET_5_75 = 'price-$-5-75';
 
-
     public function runQuery(ProductSearchContext $context, ProductSearchQuery $query)
     {
         $searchResult = new ProductSearchResult();
