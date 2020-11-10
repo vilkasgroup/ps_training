@@ -1,0 +1,6 @@
+{% extends 'PrestaShopBundle:Admin/Configure/AdvancedParameters:performance.html.twig' %}
+
+{% block perfs_form_debug_mode_form %}
+ {{ parent() }}
+ {{ ps.infotip('Be careful with this settting'|trans({}, 'Admin.Advparameters.Feature')) }}
+{% endblock %}

@@ -1,10 +1,14 @@
 <?php
 
+use Invertus\Training\API\Cat\Client;
+use Invertus\Training\Config\Config;
 use Invertus\Training\SearchProvider\TrainingSearchProvider as SearchProvider;
 use PrestaShop\PrestaShop\Adapter\Presenter\Product\ProductLazyArray;
 use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
 use PrestaShop\PrestaShop\Core\Grid\Column\Type\DataColumn;
 use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
+use PrestaShopBundle\Form\Admin\Type\SwitchType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class training extends Module implements WidgetInterface
 {
@@ -25,6 +29,11 @@ class training extends Module implements WidgetInterface
         $this->displayName = $this->l('Training');
         $this->description = $this->l('Training description');
         $this->ps_versions_compliancy = array('min' => '1.7.7.0', 'max' => _PS_VERSION_);
+    }
+
+    public function isUsingNewTranslationSystem()
+    {
+        return true;
     }
 
     public function getContent()
@@ -84,7 +93,12 @@ class training extends Module implements WidgetInterface
             'displayAdminOrderLeft',
             'actionCategoryGridQueryBuilderModifier',
             'actionCategoryGridDataModifier',
-            'actionCategoryGridDefinitionModifier'
+            'actionCategoryGridDefinitionModifier',
+            'actionPerformancePageDebugModeForm',
+            'actionPerformancePageDebugModeSave',
+            'actionCustomerFormBuilderModifier',
+            'actionAfterCreateCustomerFormHandler',
+            'actionAfterUpdateCustomerFormHandler'
         ];
 
         foreach ($hooks as $hook) {
@@ -93,6 +107,71 @@ class training extends Module implements WidgetInterface
             }
         }
         return true;
+    }
+
+    public function hookActionCustomerFormBuilderModifier($params)
+    {
+        $formBuilder = $params['form_builder'];
+        $formBuilder->add(
+            'vip',
+            SwitchType::class,
+            [
+                'label' => $this->trans('VIP', [], 'Modules.Training.Hook'),
+            ]
+        );
+    }
+
+    public function hookActionAfterCreateCustomerFormHandler($params)
+    {
+        $idCustomer = $params;
+        $vip = $params['form_data']['vip'];
+        Db::getInstance()->update('training_customer', [
+            'id_customer' => $idCustomer,
+            'vip' => $vip
+        ]);
+    }
+    public function hookActionAfterUpdateCustomerFormHandler($params)
+    {
+        $idCustomer = $params;
+        $vip = $params['form_data']['vip'];
+        Db::getInstance()->update('training_customer', [
+            'id_customer' => $idCustomer,
+            'vip' => $vip
+        ]);
+    }
+
+    public function hookActionPerformancePageDebugModeForm($params)
+    {
+        $formBuilder = $params['form_builder'];
+        $formBuilder->add(
+            'text',
+            TextType::class,
+            [
+                'data' => Configuration::get(Config::CUSTOM_DEBUG_MODE),
+                'label' => $this->trans('Text', [], 'Modules.Training.Hook'),
+                'constraints' => [
+                    new \Symfony\Component\Validator\Constraints\Length(
+                        [
+                            'min' => 5
+                        ]
+                    )
+                ]
+            ]
+        );
+        $formBuilder->add(
+            'custom_debug_mode',
+            SwitchType::class,
+            [
+                'data' => Configuration::get(Config::CUSTOM_DEBUG_MODE),
+                'label' => $this->trans('Custom Debug Mode', [], 'Modules.Training.Hook')
+            ]
+        );
+    }
+
+    public function hookActionPerformancePageDebugModeSave($params)
+    {
+        $data = $params['form_data']['custom_debug_mode'];
+        Configuration::updateValue(Config::CUSTOM_DEBUG_MODE, (int) $data);
     }
 
     public function hookActionCategoryGridQueryBuilderModifier($params)
@@ -114,10 +193,10 @@ class training extends Module implements WidgetInterface
     {
         /** @var \PrestaShop\PrestaShop\Core\Grid\Definition\GridDefinition $definition */
         $definition = $params['definition'];
-        $definition->getColumns()->add((new DataColumn('id_training_article'))
-            ->setName($this->l('Id article'))
+        $definition->getColumns()->addAfter('position', (new DataColumn('Type'))
+            ->setName($this->l('Type'))
             ->setOptions([
-                'field' => 'id_training_article',
+                'field' => 'type',
             ])
         );
     }
@@ -162,6 +241,8 @@ class training extends Module implements WidgetInterface
     public function hookDisplayAdminOrderMain()
     {
         $twig = $this->getSymfonyContainer()->get('twig');
+        $client = $this->getSymfonyContainer()->get(Client::class);
+        dump($client->getCatFacts());
         return $twig->render(
             '@Modules/' . $this->name . '/views/templates/admin/displayAdminOrderLeft.html.twig',
             [

@@ -5,3 +5,27 @@ training_admin_article:
     _controller: 'Invertus\Training\Controller\Admin\TrainingArticleController::indexAction'
     _legacy_controller: AdminTrainingArticle
     _legacy_link: AdminTrainingArticle
+
+training_admin_article_create:
+    path: /new
+    methods: [GET, POST]
+    defaults:
+        _controller: 'Invertus\Training\Controller\Admin\TrainingArticleController::createAction'
+        _legacy_controller: AdminTrainingArticle
+        _legacy_link: AdminTrainingArticle
+
+training_admin_article_edit:
+    path: /{articleId}/edit
+    methods: [GET, POST]
+    defaults:
+        _controller: 'Invertus\Training\Controller\Admin\TrainingArticleController::editAction'
+        _legacy_controller: AdminTrainingArticle
+        _legacy_link: AdminTrainingArticle
+
+training_admin_article_delete:
+    path: /{articleId}/delete
+    methods: [GET, POST]
+    defaults:
+        _controller: 'Invertus\Training\Controller\Admin\TrainingArticleController::deleteAction'
+        _legacy_controller: AdminTrainingArticle
+        _legacy_link: AdminTrainingArticle

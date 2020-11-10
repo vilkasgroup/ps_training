@@ -38,3 +38,65 @@ services:
             - '@doctrine.dbal.default_connection'
             - '%database_prefix%'
             - "@=service('prestashop.adapter.legacy.context').getContext().language.id"
+
+    training.choice_provider.product_choice_provider:
+        class: 'Invertus\Training\Form\ChoiceProvider\ProductChoiceProvider'
+        arguments:
+            - '@=service("prestashop.adapter.legacy.context").getLanguage().id'
+
+    training.choice_provider.product_choice_provider2:
+        class: 'Invertus\Training\Form\ChoiceProvider\ProductChoiceProvider'
+        arguments:
+            - '@=service("prestashop.adapter.legacy.context").getLanguage().id'
+
+    training.form.data_provider.customer_form_data_provider:
+        class: 'Invertus\Training\Form\DataProvider\ArticleDataProvider'
+
+    training.form.article_form_builder:
+        class: 'PrestaShop\PrestaShop\Core\Form\IdentifiableObject\Builder\FormBuilder'
+        factory: 'prestashop.core.form.builder.form_builder_factory:create'
+        arguments:
+            - 'Invertus\Training\Form\Type\TrainingArticleType'
+            - '@training.form.data_provider.customer_form_data_provider'
+
+    Invertus\Training\Form\FormHandler\TrainingArticleFormHandler:
+        class: 'Invertus\Training\Form\FormHandler\TrainingArticleFormHandler'
+
+    invertus.training.twig.training_extension:
+        class: 'Invertus\Training\Twig\TrainingExtension'
+        tags:
+            - { name: twig.extension }
+
+    Invertus\Training\API\Cat\Client:
+        class: Invertus\Training\API\Cat\Client
+
+    training.form.type.training_article_type:
+        class: 'Invertus\Training\Form\Type\TrainingArticleType'
+        parent: 'form.type.translatable.aware'
+        public: true
+        arguments:
+            - '@training.choice_provider.product_choice_provider2'
+        tags:
+            - { name: form.type }
+
+    training.domain.training_article.delete_handler:
+        class: 'Invertus\Training\Domain\TrainingArticle\CommandHandler\DeleteTrainingArticleHandler'
+        tags:
+            - name: tactician.handler
+              command: 'Invertus\Training\Domain\TrainingArticle\Command\DeleteTrainingArticle'
+
+    training.data_provider.decorating_performance_data_provider:
+        class: 'Invertus\Training\DataProvider\DecoratingPerformanceDataProvider'
+        arguments:
+            - '@training.data_provider.decorating_performance_data_provider.inner'
+        decorates: 'prestashop.adapter.performance.debug_mode.form_provider'
+
+    training.command.set_custom_debug_mode:
+        class: 'Invertus\Training\Command\SetCustomDebugMode'
+        tags:
+            - { name: console.command }
+#        parent: 'form.type.translatable.aware'
+#
+#        public: true
+#        tags:
+#            - { name: form.type }

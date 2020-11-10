@@ -4,6 +4,7 @@ namespace Invertus\Training\Grid\Definition;
 
 use PrestaShop\PrestaShop\Core\Grid\Action\GridActionCollection;
 use PrestaShop\PrestaShop\Core\Grid\Action\Row\RowActionCollection;
+use PrestaShop\PrestaShop\Core\Grid\Action\Row\Type\Customer\DeleteCustomerRowAction;
 use PrestaShop\PrestaShop\Core\Grid\Action\Row\Type\LinkRowAction;
 use PrestaShop\PrestaShop\Core\Grid\Action\Type\SimpleGridAction;
 use PrestaShop\PrestaShop\Core\Grid\Column\ColumnCollection;
@@ -81,21 +82,31 @@ final class ArticleGridDefinitionFactory extends AbstractGridDefinitionFactory
                     'field' => 'type',
                 ])
             )
-//            ->add((new LinkColumn('name'))
-//                ->setName($this->trans('Name', [], 'Modules.PsTraining.Admin'))
-//                ->setOptions([
-//                    'field' => 'name',
-//                    'route' => 'admin_product_form',
-//                    'route_param_name' => 'id',
-//                    'route_param_field' => 'id_product',
-//                ])
-//            )
             ->add((new ActionColumn('actions'))
                 ->setName('Actions')
                 ->setOptions([
-                    'actions' => $this->getRowActions(),
-                ])
-            )
+                    'actions' => (new RowActionCollection())
+                        ->add(
+                            (new LinkRowAction('edit'))
+                                ->setName('Edit')
+                                ->setIcon('edit')
+                                ->setOptions([
+                                    'route' => 'training_admin_article_edit',
+                                    'route_param_name' => 'articleId',
+                                    'route_param_field' => 'id_training_article',
+                                ])
+                        )
+                        ->add(
+                            (new LinkRowAction('delete'))
+                                ->setName('Delete')
+                                ->setIcon('delete')
+                                ->setOptions([
+                                    'route' => 'training_admin_article_delete',
+                                    'route_param_name' => 'articleId',
+                                    'route_param_field' => 'id_training_article',
+                                ])
+                        )
+                ]))
         ;
     }
 
