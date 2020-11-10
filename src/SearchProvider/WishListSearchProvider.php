@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Invertus\Training\SearchProvider;
-
 
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchContext;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchProviderInterface;

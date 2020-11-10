@@ -20,11 +20,16 @@ class ComposerStaticInite2189bf452863ec6098cb050448da54f
         ),
     );
 
+    public static $classMap = array (
+        'TrainingArticle' => __DIR__ . '/../..' . '/src/Entity/TrainingArticle.php',
+    );
+
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInite2189bf452863ec6098cb050448da54f::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInite2189bf452863ec6098cb050448da54f::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInite2189bf452863ec6098cb050448da54f::$classMap;
 
         }, null, ClassLoader::class);
     }

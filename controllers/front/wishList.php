@@ -25,7 +25,7 @@ class TrainingWishListModuleFrontController extends ModuleFrontController
 
     public function getProducts()
     {
-        $searchProvider = new WishListSearchProvider($this->context->cookie);
+        $searchProvider = $this->get('training.search_provider.wishlist_search_provider');
         $context = new ProductSearchContext($this->context);
         $query = new ProductSearchQuery();
 
